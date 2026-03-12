@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据仪表盘</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+        }
+        
+        body {
+            padding: 1rem;
+            background: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* 导航标签 */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .nav-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* 内容区域 */
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        /* 搜索框 */
+        .search-box {
+            margin-bottom: 1rem;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        /* 列表样式 */
+        .item-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .item-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .item-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .item-card h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #1e293b;
+        }
+        
+        .item-card p {
+            margin: 0.25rem 0 0;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        /* 数据表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .data-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #475569;
+        }
+        
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        /* Markdown 内容 */
+        .markdown-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            line-height: 1.7;
+        }
+        
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        .markdown-content th,
+        .markdown-content td {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        
+        .markdown-content th {
+            background: #f1f5f9;
+        }
+        
+        /* 标签样式 */
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .tag-city {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .tag-province {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        
+        /* 返回按钮 */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #475569;
+        }
+        
+        .back-btn:hover {
+            background: #e2e8f0;
+        }
+        
+        /* 市场数据卡片 */
+        .market-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .market-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .market-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        
+        .market-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .market-card h3 {
+            margin: 0;
+            color: #1e293b;
+        }
+        
+        .market-card p {
+            margin: 0.5rem 0 0;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .item-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 数据仪表盘</h1>
+            <p>房价、贵金属、原油、汇率数据查询</p>
+        </header>
+        
+        <!-- 导航 -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="house">🏠 房价数据</button>
+            <button class="nav-tab" data-tab="market">📈 市场数据</button>
+        </nav>
+        
+        <!-- 房价数据区域 -->
+        <section id="house" class="content-section active">
+            <div id="house-list-view">
+                <div class="search-box">
+                    <input type="text" id="house-search" placeholder="搜索城市或省份...">
+                </div>
+                
+                <h3>🏙️ 直辖市</h3>
+                <div class="item-list" id="city-list">
+                    <div class="loading">加载中...</div>
+                </div>
+                
+                <h3>🗺️ 省份</h3>
+                <div class="item-list" id="province-list">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
+            
+            <div id="house-detail-view" style="display: none;">
+                <button class="back-btn" onclick="showHouseList()">← 返回列表</button>
+                <h2 id="report-title"></h2>
+                <div class="markdown-content" id="report-content"></div>
+            </div>
+        </section>
+        
+        <!-- 市场数据区域 -->
+        <section id="market" class="content-section">
+            <div class="market-grid">
+                <div class="market-card" onclick="showMarketData('gold')">
+                    <div class="icon">🥇</div>
+                    <h3>黄金价格</h3>
+                    <p>查看最新金价数据</p>
+                </div>
+                <div class="market-card" onclick="showMarketData('oil')">
+                    <div class="icon">🛢️</div>
+                    <h3>原油价格</h3>
+                    <p>查看国际油价数据</p>
+                </div>
+                <div class="market-card" onclick="showMarketData('exchange')">
+                    <div class="icon">💱</div>
+                    <h3>汇率数据</h3>
+                    <p>查看人民币汇率</p>
+                </div>
+            </div>
+            
+            <div id="market-detail" style="display: none;">
+                <button class="back-btn" onclick="showMarketList()">← 返回</button>
+                <h2 id="market-title"></h2>
+                <p id="market-file" style="color: #64748b; font-size: 0.875rem;"></p>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="market-table">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        // 判断运行环境：静态文件模式 vs Flask 服务器模式
+        const isStaticMode = window.location.protocol === 'file:' || !window.location.port;
+        const API_BASE = isStaticMode ? 'data' : '/api';
+        
+        // 导航切换
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+        
+        // 房价数据
+        let houseData = { by_city: [], by_province: [] };
+        
+        // 加载房价报告列表
+        async function loadHouseReports() {
+            try {
+                const res = await fetch(`${API_BASE}/house_reports.json`);
+                houseData = await res.json();
+                renderHouseList();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        
+        // 渲染列表
+        function renderHouseList(filter = '') {
+            const filterLower = filter.toLowerCase();
+            
+            // 城市列表
+            const cityList = document.getElementById('city-list');
+            if (houseData.by_city.length === 0) {
+                cityList.innerHTML = '<p>暂无数据</p>';
+            } else {
+                cityList.innerHTML = houseData.by_city
+                    .filter(c => c.toLowerCase().includes(filterLower))
+                    .map(c => `
+                        <div class="item-card" onclick="showHouseReport('${c}', 'city')">
+                            <h3>${c}</h3>
+                            <p><span class="tag tag-city">直辖市</span></p>
+                        </div>
+                    `).join('');
+            }
+            
+            // 省份列表
+            const provinceList = document.getElementById('province-list');
+            if (houseData.by_province.length === 0) {
+                provinceList.innerHTML = '<p>暂无数据</p>';
+            } else {
+                provinceList.innerHTML = houseData.by_province
+                    .filter(p => p.toLowerCase().includes(filterLower))
+                    .map(p => `
+                        <div class="item-card" onclick="showHouseReport('${p}', 'province')">
+                            <h3>${p}</h3>
+                            <p><span class="tag tag-province">省份</span></p>
+                        </div>
+                    `).join('');
+            }
+        }
+        
+        // 搜索
+        document.getElementById('house-search').addEventListener('input', (e) => {
+            renderHouseList(e.target.value);
+        });
+        
+        // 查看报告
+        async function showHouseReport(name, type) {
+            document.getElementById('house-list-view').style.display = 'none';
+            document.getElementById('house-detail-view').style.display = 'block';
+            document.getElementById('report-title').textContent = name + (type === 'city' ? ' 房价报告' : ' 房价报告');
+            
+            try {
+                let url;
+                if (isStaticMode) {
+                    url = `${API_BASE}/house/${encodeURIComponent(name)}.json`;
+                } else {
+                    url = `/api/house/report/${encodeURIComponent(name)}`;
+                }
+                const res = await fetch(url);
+                const data = await res.json();
+                document.getElementById('report-content').innerHTML = parseMarkdown(data.content || '');
+            } catch (e) {
+                document.getElementById('report-content').innerHTML = '<p>加载失败</p>';
+            }
+        }
+        
+        // 返回列表
+        function showHouseList() {
+            document.getElementById('house-list-view').style.display = 'block';
+            document.getElementById('house-detail-view').style.display = 'none';
+        }
+        
+        // 简单 Markdown 解析（表格）
+        function parseMarkdown(text) {
+            let html = text;
+            
+            // 先处理表格
+            const tableRegex = /(\|.+\|\n)+/g;
+            html = html.replace(tableRegex, (match) => {
+                const lines = match.trim().split('\n');
+                let tableHtml = '<table class="data-table"><thead>';
+                let tbodyStarted = false;
+                
+                for (let line of lines) {
+                    // 跳过分隔行 |---|---|
+                    if (line.match(/^\|[\s\-:|]+\|$/)) continue;
+                    
+                    const cells = line.split('|').filter(c => c.trim() !== '');
+                    const isHeader = !tbodyStarted;
+                    
+                    if (isHeader) {
+                        tableHtml += '<tr>';
+                        cells.forEach(cell => {
+                            tableHtml += `<th>${cell.trim()}</th>`;
+                        });
+                        tableHtml += '</tr></thead><tbody>';
+                        tbodyStarted = true;
+                    } else {
+                        tableHtml += '<tr>';
+                        cells.forEach(cell => {
+                            tableHtml += `<td>${cell.trim()}</td>`;
+                        });
+                        tableHtml += '</tr>';
+                    }
+                }
+                
+                tableHtml += '</tbody></table>';
+                return tableHtml;
+            });
+            
+            // 处理标题
+            html = html
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>');
+            
+            // 处理段落（排除已处理的 HTML 标签）
+            html = html.split('\n\n').map(p => {
+                p = p.trim();
+                if (!p) return '';
+                if (p.startsWith('<') || p.startsWith('#')) return p;
+                return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+            }).join('');
+            
+            return html;
+        }
+        
+        // 市场数据
+        async function showMarketData(category) {
+            const titles = {
+                gold: '🥇 黄金价格',
+                oil: '🛢️ 原油价格',
+                exchange: '💱 汇率数据'
+            };
+            
+            document.getElementById('market-title').textContent = titles[category];
+            
+            try {
+                let url;
+                if (isStaticMode) {
+                    url = `${API_BASE}/market/${category}.json`;
+                } else {
+                    url = `/api/market/data/${category}`;
+                }
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                document.getElementById('market-file').textContent = '数据文件: ' + (data.file || '');
+                
+                // 表头
+                const thead = document.querySelector('#market-table thead');
+                thead.innerHTML = '<tr>' + data.headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+                
+                // 数据
+                const tbody = document.querySelector('#market-table tbody');
+                tbody.innerHTML = data.data.map(row => 
+                    '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>'
+                ).join('');
+                
+                document.getElementById('market-detail').style.display = 'block';
+            } catch (e) {
+                console.error(e);
+                alert('加载失败');
+            }
+        }
+        
+        function showMarketList() {
+            document.getElementById('market-detail').style.display = 'none';
+        }
+        
+        // 初始化
+        loadHouseReports();
+    </script>
+</body>
+</html>
